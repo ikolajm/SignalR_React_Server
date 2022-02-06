@@ -9,6 +9,7 @@ using backend.Services.AuthService;
 using Swashbuckle.AspNetCore.Filters;
 using backend.Services.RoomService;
 using backend.Services.MessageService;
+using backend.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,15 +24,18 @@ builder.Services.AddCors(options =>
             builder.WithOrigins("http://localhost:3000");
             builder.AllowAnyHeader();
             builder.AllowAnyMethod();
+            builder.AllowCredentials();
         });
 });
 
+builder.Services.AddSignalR();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRoomService, RoomService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
+builder.Services.AddSingleton<IDictionary<string, UserConnection>>(opts => new Dictionary<string, UserConnection>());
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDbContext<DbSetup>(options =>
@@ -79,5 +83,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ChatHub>("/chathub");
 
 app.Run();
